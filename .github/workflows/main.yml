@@ -17,7 +17,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout repo
+      - name: Checkout repository
         uses: actions/checkout@v3
 
       - name: Set up Python
@@ -25,17 +25,17 @@ jobs:
         with:
           python-version: '3.11'
 
-      - name: Install dependencies
+      - name: Install system & Python dependencies
         run: |
           sudo apt purge -y chromium-browser || true
           sudo apt update
           sudo apt install -y wget unzip curl jq
 
-          # Install Google Chrome
+          # Install Chrome
           wget https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb
           sudo dpkg -i google-chrome-stable_current_amd64.deb || sudo apt -f install -y
 
-          # Fetch matching Chromedriver
+          # Install matching chromedriver
           curl -sSL https://googlechromelabs.github.io/chrome-for-testing/last-known-good-versions-with-downloads.json -o versions.json
           CHROME_URL=$(jq -r '.channels.Stable.downloads.chromedriver[] | select(.platform == "linux64") | .url' versions.json)
           wget "$CHROME_URL" -O chromedriver.zip
@@ -43,10 +43,11 @@ jobs:
           chmod +x /usr/local/bin/chromedriver-linux64/chromedriver
           sudo mv /usr/local/bin/chromedriver-linux64/chromedriver /usr/local/bin/chromedriver
 
-          pip install selenium
+          # Install Python packages
+          pip install -r Insta_Bot/requirements.txt
 
       - name: Run the bot
         env:
           IG_SESSIONID: ${{ secrets.IG_SESSIONID }}
         run: |
-          python instabot.py "${{ github.event.inputs.recipient }}" "${{ github.event.inputs.count }}"
+          python Insta_Bot/bot.py "${{ github.event.inputs.recipient }}" "${{ github.event.inputs.count }}"
