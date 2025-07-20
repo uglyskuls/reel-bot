@@ -1,4 +1,4 @@
-name: Instagram Reel Bot
+name: Fast Instagram Bot
 
 on:
   workflow_dispatch:
@@ -17,7 +17,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout repository
+      - name: Checkout repo
         uses: actions/checkout@v3
 
       - name: Set up Python
@@ -25,26 +25,15 @@ jobs:
         with:
           python-version: '3.11'
 
-      - name: Install system & Python dependencies
+      - name: Install Python dependencies
         run: |
-          sudo apt purge -y chromium-browser || true
+          pip install selenium
+
+      - name: Configure Chromium
+        run: |
           sudo apt update
-          sudo apt install -y wget unzip curl jq
-
-          # Install Chrome
-          wget https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb
-          sudo dpkg -i google-chrome-stable_current_amd64.deb || sudo apt -f install -y
-
-          # Install matching chromedriver
-          curl -sSL https://googlechromelabs.github.io/chrome-for-testing/last-known-good-versions-with-downloads.json -o versions.json
-          CHROME_URL=$(jq -r '.channels.Stable.downloads.chromedriver[] | select(.platform == "linux64") | .url' versions.json)
-          wget "$CHROME_URL" -O chromedriver.zip
-          unzip chromedriver.zip -d /usr/local/bin/
-          chmod +x /usr/local/bin/chromedriver-linux64/chromedriver
-          sudo mv /usr/local/bin/chromedriver-linux64/chromedriver /usr/local/bin/chromedriver
-
-          # Install Python packages
-          pip install -r Insta_Bot/requirements.txt
+          sudo apt install -y chromium-browser chromium-chromedriver
+          sudo ln -s /usr/lib/chromium-browser/chromedriver /usr/local/bin/chromedriver
 
       - name: Run the bot
         env:
