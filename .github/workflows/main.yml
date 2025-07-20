@@ -1,0 +1,52 @@
+name: Instagram Reel Bot
+
+on:
+  workflow_dispatch:
+    inputs:
+      recipient:
+        description: 'Instagram username to send reels to'
+        required: true
+        default: 'poorviiiiiiie'
+      count:
+        description: 'Number of reels to send'
+        required: true
+        default: '3'
+
+jobs:
+  run-bot:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: |
+          sudo apt purge -y chromium-browser || true
+          sudo apt update
+          sudo apt install -y wget unzip curl jq
+
+          # Install Google Chrome
+          wget https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb
+          sudo dpkg -i google-chrome-stable_current_amd64.deb || sudo apt -f install -y
+
+          # Fetch matching Chromedriver
+          curl -sSL https://googlechromelabs.github.io/chrome-for-testing/last-known-good-versions-with-downloads.json -o versions.json
+          CHROME_URL=$(jq -r '.channels.Stable.downloads.chromedriver[] | select(.platform == "linux64") | .url' versions.json)
+          wget "$CHROME_URL" -O chromedriver.zip
+          unzip chromedriver.zip -d /usr/local/bin/
+          chmod +x /usr/local/bin/chromedriver-linux64/chromedriver
+          sudo mv /usr/local/bin/chromedriver-linux64/chromedriver /usr/local/bin/chromedriver
+
+          pip install selenium
+
+      - name: Run the bot
+        env:
+          IG_SESSIONID: ${{ secrets.IG_SESSIONID }}
+        run: |
+          python instabot.py "${{ github.event.inputs.recipient }}" "${{ github.event.inputs.count }}"
