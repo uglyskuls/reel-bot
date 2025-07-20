@@ -25,7 +25,7 @@ chrome_options.add_argument("--no-sandbox")
 chrome_options.add_argument("--disable-dev-shm-usage")
 chrome_options.add_argument("--disable-gpu")
 chrome_options.add_argument("--window-size=1280,1024")
-chrome_options.binary_location = "/usr/bin/google-chrome"
+chrome_options.binary_location = "/usr/bin/chromium-browser"
 
 driver = webdriver.Chrome(service=Service("/usr/local/bin/chromedriver"), options=chrome_options)
 wait = WebDriverWait(driver, 10)
