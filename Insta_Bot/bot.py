@@ -36,7 +36,7 @@ driver.add_cookie({
     "path": "/"
 })
 driver.refresh()
-time.sleep(3)
+wait.until(EC.title_contains("Instagram"))  # wait page title for safety
 
 if "Login" in driver.title or "Log in" in driver.page_source:
     print("❌ Login failed! Check your sessionid.")
@@ -44,41 +44,30 @@ if "Login" in driver.title or "Log in" in driver.page_source:
     raise Exception("Not logged in to Instagram.")
 
 driver.get("https://www.instagram.com/reels/")
-time.sleep(7)
+wait.until(EC.presence_of_element_located((By.XPATH, '//section/main')))  # wait for reels container
 
 def share_current_reel():
     try:
         print("🟡 Looking for Share button (ABSOLUTE XPATH) ...")
-        share_btn = driver.find_element(By.XPATH, '/html/body/div[1]/div/div/div[2]/div/div/div[1]/div[1]/div[1]/section/main/div/div[1]/div/div[2]/div[3]')
-        driver.execute_script("arguments[0].scrollIntoView({behavior: 'smooth', block: 'center'});", share_btn)
-        time.sleep(1)
+        share_btn = wait.until(EC.element_to_be_clickable((By.XPATH, '/html/body/div[1]/div/div/div[2]/div/div/div[1]/div[1]/div[1]/section/main/div/div[1]/div/div[2]/div[3]')))
+        driver.execute_script("arguments[0].scrollIntoView({behavior: 'instant', block: 'center'});", share_btn)
         share_btn.click()
         print("Clicked the Share button.")
 
-        # Choose recipient from Frequently Messaged
-        freq_msg_btn = wait.until(
-            EC.element_to_be_clickable((
-                By.XPATH,
-                f'//div[@role="button"]//span[text()="{recipient_username}"]/ancestor::div[@role="button"]'
-            ))
-        )
+        freq_msg_btn = wait.until(EC.element_to_be_clickable((
+            By.XPATH,
+            f'//div[@role="button"]//span[text()="{recipient_username}"]/ancestor::div[@role="button"]'
+        )))
         freq_msg_btn.click()
         print(f"Clicked frequently messaged recipient: {recipient_username}")
-        time.sleep(0.5)
 
-        # Press Send
-        send_btn = wait.until(
-            EC.element_to_be_clickable((By.XPATH, "//div[@role='button' and text()='Send']"))
-        )
+        send_btn = wait.until(EC.element_to_be_clickable((By.XPATH, "//div[@role='button' and text()='Send']")))
         send_btn.click()
         print(f"✅ Sent reel to {recipient_username}")
-        time.sleep(1)
 
-        # Optional: close confirmation modal
         try:
-            close_btn = driver.find_element(By.XPATH, "//div[@aria-label='Close']")
-            driver.execute_script("arguments[0].click();", close_btn)
-            time.sleep(0.5)
+            close_btn = wait.until(EC.element_to_be_clickable((By.XPATH, "//div[@aria-label='Close']")))
+            close_btn.click()
         except Exception:
             pass
 
@@ -89,7 +78,7 @@ for i in range(total_iterations):
     print(f"\n🔁 Cycle {i + 1} of {total_iterations}")
     if i > 0:
         driver.get("https://www.instagram.com/reels/")
-        time.sleep(7)
+        wait.until(EC.presence_of_element_located((By.XPATH, '//section/main')))
     share_current_reel()
 
 driver.quit()
